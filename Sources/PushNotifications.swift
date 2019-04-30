@@ -82,6 +82,7 @@ import Foundation
      - Parameter options: The authorization options your app is requesting. You may combine the available constants to request authorization for multiple items. Request only the authorization options that you plan to use. For a list of possible values, see [UNAuthorizationOptions](https://developer.apple.com/documentation/usernotifications/unauthorizationoptions).
      */
     /// - Tag: registerOptions
+    @available(iOS 10, *)
     @objc public func registerForRemoteNotifications(options: UNAuthorizationOptions) {
         PushNotificationsStatic.registerForRemoteNotifications(options: options)
     }
@@ -135,10 +136,7 @@ import Foundation
             return
         }
 
-        let helpfulTimer = Timer.scheduledTimer(timeInterval: 15, target: self, selector: #selector(printHelpfulMessage), userInfo: nil, repeats: false)
-
         let wrapperCompletion: (Error?) -> Void = { error in
-            helpfulTimer.invalidate()
             completion(error)
         }
 

@@ -47,7 +47,11 @@ import Foundation
      */
     /// - Tag: register
     @objc public static func registerForRemoteNotifications() {
-        self.registerForPushNotifications(options: [.alert, .sound, .badge])
+        if #available(iOS 10, *) {
+            self.registerForPushNotifications(options: [.alert, .sound, .badge])
+        } else {
+            self.registerForRemoteNotificationsOld(options: [.alert, .sound, .badge])
+        }
     }
 
     #if os(iOS)
@@ -57,8 +61,12 @@ import Foundation
      - Parameter options: The authorization options your app is requesting. You may combine the available constants to request authorization for multiple items. Request only the authorization options that you plan to use. For a list of possible values, see [UNAuthorizationOptions](https://developer.apple.com/documentation/usernotifications/unauthorizationoptions).
      */
     /// - Tag: registerOptions
+    @available(iOS 10, *)
     @objc public static func registerForRemoteNotifications(options: UNAuthorizationOptions) {
         self.registerForPushNotifications(options: options)
+    }
+    @objc public static func registerForRemoteNotificationsOld(options: UIUserNotificationType) {
+        self.registerForPushNotificationsOld(options: options)
     }
     #elseif os(OSX)
     /**
@@ -67,11 +75,16 @@ import Foundation
      - Parameter options: A bit mask specifying the types of notifications the app accepts. See [NSApplication.RemoteNotificationType](https://developer.apple.com/documentation/appkit/nsapplication.remotenotificationtype) for valid bit-mask values.
      */
     @objc public static func registerForRemoteNotifications(options: NSApplication.RemoteNotificationType) {
-        self.registerForPushNotifications(options: options)
+        if #available(iOS 10, *) {
+            self.registerForPushNotifications(options: options)
+        } else {
+            self.registerForPushNotificationsOld(options: options)
+        }
     }
     #endif
 
     #if os(iOS)
+    @available(iOS 10, *)
     private static func registerForPushNotifications(options: UNAuthorizationOptions) {
         UNUserNotificationCenter.current().requestAuthorization(options: options) { granted, error in
             if granted {
@@ -82,6 +95,12 @@ import Foundation
             if let error = error {
                 print("[PushNotifications] - \(error.localizedDescription)")
             }
+        }
+    }
+    private static func registerForPushNotificationsOld(options: UIUserNotificationType) {
+        DispatchQueue.main.async {
+            UIApplication.shared.registerUserNotificationSettings(UIUserNotificationSettings(types: options, categories: nil))
+            UIApplication.shared.registerForRemoteNotifications()
         }
     }
     #elseif os(OSX)
